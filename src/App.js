@@ -1,46 +1,53 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import Auth from "./Pages/Auth";
-import Profile from "./Pages/Profile";
-import Dashboard from "./Pages/Dashboard";
+
+import { LoginContext } from "./helper/Context";
+import Home from "./useContextHookExample/Home";
+import Login from "./useContextHookExample/Login";
+import Profile from "./useContextHookExample/Profile";
 
 function App() {
-  const [user, setUser] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  // Remember useEffect Hook gets executed in order .....!!!
 
   useEffect(() => {
-    const u = localStorage.getItem("user");
-    console.log(u);
-    console.log(JSON.parse(u));
-    u && JSON.parse(u) ? setUser(true) : setUser(false);
+    const user = localStorage.getItem("users");
+    console.log(JSON.parse(user));
+    user && JSON.parse(user) ? setLoggedIn(true) : setLoggedIn(false);
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("user", user);
-  }, [user]);
+    console.log("logged in state changed " + loggedIn);
+    localStorage.setItem("users", loggedIn);
+  }, [loggedIn]);
 
-  /*
-  It works because in JavaScript, true && expression always evaluates to expression, and false && expression always evaluates to false
-  */
   return (
-    <Routes>
-      {/* here , (!user : false) this condition is true right ? so , It will ev  */}
-      {!user && (
-        <Route
-          path="/auth"
-          element={<Auth authenticate={() => setUser(true)} />}
-        />
-      )}
-      {user && (
-        <>
+    <LoginContext.Provider value={{ loggedIn, setLoggedIn }}>
+      <div
+        style={{
+          border: "6px solid black",
+          display: "flex",
+          justifyContent: "center",
+          justifyItems: "center",
+        }}
+      >
+        <Routes>
+          {!loggedIn && <Route path="/login" element={<Login />} />}
+
+          {loggedIn && (
+            <>
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/" element={<Home />} />
+            </>
+          )}
           <Route
-            path="/profile"
-            element={<Profile logout={() => setUser(false)} />}
+            path="*"
+            element={<Navigate to={loggedIn ? "/profile" : "/login"} />}
           />
-          <Route path="/dashboard" element={<Dashboard />} />
-        </>
-      )}
-      <Route path="*" element={<Navigate to={user ? "/profile" : "/auth"} />} />
-    </Routes>
+        </Routes>
+      </div>
+    </LoginContext.Provider>
   );
 }
 
