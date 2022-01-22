@@ -1,91 +1,57 @@
-import { useState } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import Auth from "./Pages/Auth";
+import Profile from "./Pages/Profile";
+import Dashboard from "./Pages/Dashboard";
 
-let globalID = 0;
 function App() {
-  const [todos, setTodos] = useState([]);
-  const [text, setText] = useState("");
+  const [user, setUser] = useState(false);
 
-  const pushTodo = (event) => {
-    event.preventDefault(); // to stop refreshing of page which is a default behaviour of html form .
-    setTodos((oldTodos) => {
-      setText("");
-      globalID++;
-      return [...oldTodos, { todo: text, id: globalID }];
-    });
-  };
+  useEffect(() => {
+    const u = localStorage.getItem("user");
+    console.log(u);
+    console.log(JSON.parse(u));
+    u && JSON.parse(u) ? setUser(true) : setUser(false);
+  }, []);
 
-  const deleteTodo = (itemID) => {
-    setTodos((oldTodos) => {
-      return oldTodos.filter((item) => item.id !== itemID);
-    });
-  };
+  useEffect(() => {
+    localStorage.setItem("user", user);
+  }, [user]);
 
+  /*
+  It works because in JavaScript, true && expression always evaluates to expression, and false && expression always evaluates to false
+  */
   return (
-    <form onSubmit={pushTodo}>
-      <h3>todos</h3>
-      Enter Todo :
-      <input
-        type="text"
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-      />
-      <button type="submit">PUSH</button>
-      <ul>
-        {todos.map((item, index) => {
-          return (
-            <div>
-              <li key={item.id}>
-                {item.id} ******* {item.todo}
-              </li>
-              <button type="button" onClick={() => deleteTodo(item.id)}>
-                del
-              </button>
-            </div>
-          );
-        })}
-      </ul>
-    </form>
+    <Routes>
+      {/* here , (!user : false) this condition is true right ? so , It will ev  */}
+      {!user && (
+        <Route
+          path="/auth"
+          element={<Auth authenticate={() => setUser(true)} />}
+        />
+      )}
+      {user && (
+        <>
+          <Route
+            path="/profile"
+            element={<Profile logout={() => setUser(false)} />}
+          />
+          <Route path="/dashboard" element={<Dashboard />} />
+        </>
+      )}
+      <Route path="*" element={<Navigate to={user ? "/profile" : "/auth"} />} />
+    </Routes>
   );
 }
 
 export default App;
-/*
-TO PUSH TODO VIA ENTER KEY
 
-function App() {
-  const [todos, setTodos] = useState(["Hello"]);
-  const [text, setText] = useState("");
-  const pushTodo = () => {
-    setTodos((oldTodos) => {
-      setText("");
-      return [...oldTodos, text];
-    });
-  };
-  //console log e , there you will
-  const addingTodoUsingEnter = (e) => {
-    if (e.keyCode === 13) {
-      pushTodo();
-    }
-  };
-  return (
-    <div>
-      <h3>todos</h3>
-      Enter Todo :
-      <input
-        onKeyDown={addingTodoUsingEnter}
-        type="text"
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-      />
-      <button type="button" onClick={pushTodo}>
-        PUSH
-      </button>
-      <ul>
-        {todos.map((todo) => {
-          return <li>{todo}</li>;
-        })}
-      </ul>
-    </div>
-  );
-}
+/*
+<div>
+        <h1>Hello</h1>
+
+        <Route path="/todo">
+          <Todo />
+        </Route>
+      </div>
 */
